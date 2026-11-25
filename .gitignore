@@ -1,0 +1,6 @@
+# Team 7: Hao Yang, Zexuan Li, Haolin Chen.
+.idea/
+out/
+target/
+*.class
+*.iml.bak

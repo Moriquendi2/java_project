@@ -4,7 +4,9 @@ package mia.parking.ui;
 import java.awt.Color;
 import java.awt.Font;
 
-/** Shared palette and typography for the Swing control-center shell. */
+/** Shared palette and typography for the Swing control-center shell.
+ * 中文：集中定义 Swing 界面的颜色和字体样式。
+ */
 final class UiTheme {
 
     static final Color BACKGROUND = new Color(241, 245, 249);
@@ -20,6 +22,9 @@ final class UiTheme {
     static final String FONT_FAMILY = "Microsoft YaHei UI";
     static final Font SMALL_BOLD = new Font(FONT_FAMILY, Font.BOLD, 11);
 
+    /**
+     * 中文：阻止创建主题常量工具类的实例。
+     */
     private UiTheme() {
     }
 }

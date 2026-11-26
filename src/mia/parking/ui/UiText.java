@@ -4,7 +4,9 @@ package mia.parking.ui;
 import java.util.Map;
 import mia.parking.core.domain.Incident;
 
-/** Small built-in text catalog for the two supported interface languages. */
+/** Small built-in text catalog for the two supported interface languages.
+ * 中文：提供控制中心使用的中英文界面文案和事件提示。
+ */
 final class UiText {
     private static final Map<String, String> CHINESE = Map.ofEntries(
             Map.entry("brand.title", "MIA 停车运营中心"),
@@ -132,13 +134,22 @@ final class UiText {
             Map.entry("incident.message.parkingTimeout", "A vehicle exceeded its allowed parking duration."),
             Map.entry("incident.message.deviceFailure", "A parking-space device reported a failure."));
 
+    /**
+     * 中文：阻止创建界面文案工具类的实例。
+     */
     private UiText() {
     }
 
+    /**
+     * 中文：按当前语言读取本地化界面文案。
+     */
     static String text(UiLanguage language, String key) {
         return (language == UiLanguage.ENGLISH ? ENGLISH : CHINESE).getOrDefault(key, key);
     }
 
+    /**
+     * 中文：按界面语言返回事件类别对应的标题。
+     */
     static String incidentTitle(UiLanguage language, Incident.Type type) {
         return text(language, switch (type) {
             case CAPACITY_WARNING -> "incident.capacity";
@@ -151,6 +162,9 @@ final class UiText {
         });
     }
 
+    /**
+     * 中文：按界面语言生成事件提示内容。
+     */
     static String incidentMessage(UiLanguage language, Incident incident) {
         String key = switch (incident.type()) {
             case CAPACITY_WARNING -> "incident.message.capacity";

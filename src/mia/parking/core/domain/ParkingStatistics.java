@@ -5,7 +5,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 
-/** Basic reporting values requested by the project description. */
+/** Basic reporting values requested by the project description.
+ * 中文：封装指定时段内的停车数量、占用和时长统计。
+ */
 public record ParkingStatistics(
         Instant from,
         Instant to,
@@ -14,6 +16,9 @@ public record ParkingStatistics(
         Map<String, Integer> terminalVisits,
         Duration averageEntryToSpace,
         Duration averageSpaceToExit) {
+    /**
+     * 中文：复制统计映射，确保统计结果不可变。
+     */
     public ParkingStatistics {
         terminalVisits = Map.copyOf(terminalVisits);
     }

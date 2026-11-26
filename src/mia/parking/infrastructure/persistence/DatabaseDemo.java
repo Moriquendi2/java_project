@@ -4,11 +4,19 @@ package mia.parking.infrastructure.persistence;
 import java.io.IOException;
 import java.sql.SQLException;
 
-/** Reads and prints the sample parking zones to demonstrate a MySQL connection. */
+/** Reads and prints the sample parking zones to demonstrate a MySQL connection.
+ * 中文：演示连接 MySQL 并读取停车分区样例。
+ */
 public final class DatabaseDemo {
+    /**
+     * 中文：阻止创建独立数据库演示类的实例。
+     */
     private DatabaseDemo() {
     }
 
+    /**
+     * 中文：创建应用服务和模拟适配器，并显示主窗口。
+     */
     public static void main(String[] args) {
         try {
             var zones = new ParkingZoneDao().findAll();

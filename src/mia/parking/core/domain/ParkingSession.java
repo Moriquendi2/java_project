@@ -4,7 +4,9 @@ package mia.parking.core.domain;
 import java.time.Duration;
 import java.time.Instant;
 
-/** One vehicle visit, including assigned and actually occupied spaces. */
+/** One vehicle visit, including assigned and actually occupied spaces.
+ * 中文：记录车辆从入场到停车、离场结算的会话状态。
+ */
 public record ParkingSession(
         String id,
         EntryRequest entry,

@@ -19,19 +19,27 @@ import mia.parking.core.domain.ParkingStatistics;
 import mia.parking.core.domain.SettlementResult;
 import mia.parking.core.port.ParkingRepository;
 
-/** Sample-data repository used for development without a MySQL server. */
+/** Sample-data repository used for development without a MySQL server.
+ * 中文：在内存中提供开发和界面演示所需的停车样例数据。
+ */
 public final class InMemoryParkingRepository implements ParkingRepository {
     private final Map<String, ParkingSpace> spaces = new LinkedHashMap<>();
     private final Map<String, ParkingSession> sessions = new LinkedHashMap<>();
     private final List<Incident> incidents = new ArrayList<>();
     private final List<SettlementResult> settlements = new ArrayList<>();
 
+    /**
+     * 中文：创建开发演示所需的分区和车位样例。
+     */
     public InMemoryParkingRepository() {
         addZone("A", 4);
         addZone("B", 4);
         addZone("C", 4);
     }
 
+    /**
+     * 中文：创建指定数量的分区样例车位。
+     */
     private void addZone(String zoneId, int count) {
         for (int index = 1; index <= count; index++) {
             String id = zoneId + String.format("%02d", index);
@@ -62,26 +70,41 @@ public final class InMemoryParkingRepository implements ParkingRepository {
                 .findFirst();
     }
 
+    /**
+     * 中文：按编号新增或更新停车会话。
+     */
     @Override
     public synchronized void saveSession(ParkingSession session) {
         sessions.put(session.id(), session);
     }
 
+    /**
+     * 中文：按编号新增或更新车位记录。
+     */
     @Override
     public synchronized void saveSpace(ParkingSpace space) {
         spaces.put(space.id(), space);
     }
 
+    /**
+     * 中文：创建并保存运营事件。
+     */
     @Override
     public synchronized void saveIncident(Incident incident) {
         incidents.add(incident);
     }
 
+    /**
+     * 中文：保存一条停车结算记录。
+     */
     @Override
     public synchronized void saveSettlement(SettlementResult settlement) {
         settlements.add(settlement);
     }
 
+    /**
+     * 中文：使用快照恢复车位、会话和事件数据。
+     */
     @Override
     public synchronized void restoreState(ParkingStateSnapshot snapshot) {
         spaces.clear();
@@ -100,6 +123,9 @@ public final class InMemoryParkingRepository implements ParkingRepository {
                 .toList();
     }
 
+    /**
+     * 中文：统计指定时段内的停车数据。
+     */
     @Override
     public synchronized ParkingStatistics loadStatistics(Instant from, Instant to) {
         int completed = (int) sessions.values().stream()

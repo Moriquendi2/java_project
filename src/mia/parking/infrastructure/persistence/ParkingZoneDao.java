@@ -9,7 +9,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Basic JDBC reads and inserts for the standalone parking-zone example. */
+/** Basic JDBC reads and inserts for the standalone parking-zone example.
+ * 中文：通过 JDBC 查询和写入停车分区记录。
+ */
 public final class ParkingZoneDao {
     public List<ParkingZone> findAll() throws IOException, SQLException {
         String sql = "SELECT zone_id, zone_name, description, capacity "
@@ -29,6 +31,9 @@ public final class ParkingZoneDao {
         return List.copyOf(zones);
     }
 
+    /**
+     * 中文：向数据库写入一条停车分区记录。
+     */
     public void insert(ParkingZone zone) throws IOException, SQLException {
         String sql = "INSERT INTO PARKING_ZONE (zone_id, zone_name, description, capacity) "
                 + "VALUES (?, ?, ?, ?)";

@@ -31,12 +31,18 @@ import mia.parking.core.port.SnapshotStore;
  * Small in-memory implementation for wiring the modules together during development.
  * Replace its demonstration allocation and fee rules with the completed core rules.
  */
+/**
+ * 中文：以简化的内存逻辑演示停车入场、设备事件、离场结算和查询流程。
+ */
 public final class DemoParkingControlService implements ParkingControlService {
     private final ParkingRepository repository;
     private final SnapshotStore snapshotStore;
     private final Clock clock;
     private final DeviceGateway devices;
 
+    /**
+     * 中文：注入数据仓库、快照存储、统一时钟和设备适配器。
+     */
     public DemoParkingControlService(ParkingRepository repository,
                                      SnapshotStore snapshotStore,
                                      Clock clock,
@@ -47,6 +53,9 @@ public final class DemoParkingControlService implements ParkingControlService {
         this.devices = devices;
     }
 
+    /**
+     * 中文：处理入场请求、分配符合条件的车位并创建停车会话。
+     */
     @Override
     public synchronized EntryResult handleEntry(EntryRequest request) {
         Optional<ParkingSpace> available = repository.loadSpaces().stream()
@@ -68,6 +77,9 @@ public final class DemoParkingControlService implements ParkingControlService {
         return new EntryResult(true, sessionId, space.id(), "Follow signs to " + space.label(), "Assigned.");
     }
 
+    /**
+     * 中文：根据设备消息更新车位和停车会话状态。
+     */
     @Override
     public synchronized void handleSpaceEvent(SpaceEvent event) {
         Optional<ParkingSpace> matchingSpace = repository.loadSpaces().stream()
@@ -112,6 +124,9 @@ public final class DemoParkingControlService implements ParkingControlService {
         }
     }
 
+    /**
+     * 中文：结算停车费用、结束会话并返回出口放行决定。
+     */
     @Override
     public synchronized SettlementResult handleExit(ExitRequest request) {
         Optional<ParkingSession> active = repository.findActiveSessionByPlate(request.plate());
@@ -139,6 +154,9 @@ public final class DemoParkingControlService implements ParkingControlService {
         return result;
     }
 
+    /**
+     * 中文：汇总车位、分区和近期事件供仪表盘显示。
+     */
     @Override
     public DashboardSnapshot getDashboardSnapshot() {
         List<ParkingSpace> spaces = repository.loadSpaces();
@@ -167,6 +185,9 @@ public final class DemoParkingControlService implements ParkingControlService {
         return repository.loadSpaces().stream().filter(space -> space.id().equals(spaceId)).findFirst();
     }
 
+    /**
+     * 中文：更新车位启停状态并同步下发设备命令。
+     */
     @Override
     public synchronized void setSpaceEnabled(String spaceId, boolean enabled) {
         repository.loadSpaces().stream().filter(space -> space.id().equals(spaceId)).findFirst().ifPresent(space -> {
@@ -178,34 +199,55 @@ public final class DemoParkingControlService implements ParkingControlService {
         });
     }
 
+    /**
+     * 中文：将巡逻人员提交的情况记录为停车事件。
+     */
     @Override
     public void reportPatrolFinding(PatrolReport report) {
         ParkingSpace space = getSpaceDetails(report.spaceId()).orElse(null);
         saveIncident(report.type(), report.note(), space, report.plate());
     }
 
+    /**
+     * 中文：读取指定时间范围内的停车统计。
+     */
     @Override
     public ParkingStatistics getStatistics(Instant from, Instant to) {
         return repository.loadStatistics(from, to);
     }
 
+    /**
+     * 中文：保存当前停车状态以供后续恢复。
+     */
     @Override
     public void saveSnapshot() {
         snapshotStore.save(new ParkingStateSnapshot(clock.now(), repository.loadSpaces(),
                 repository.loadActiveSessions(), repository.loadRecentIncidents(100)));
     }
 
+    /**
+     * 中文：从快照存储恢复停车状态。
+     */
     @Override
     public void restoreSnapshot() {
         snapshotStore.load().ifPresent(repository::restoreState);
     }
 
+    /**
+     * 中文：保存一条运营事件。
+     */
+    /**
+     * 中文：创建并保存运营事件。
+     */
     private void saveIncident(Incident.Type type, String message, ParkingSpace space, String plate) {
         repository.saveIncident(new Incident(UUID.randomUUID().toString(), type, message,
                 space == null ? null : space.zoneId(), space == null ? null : space.id(), plate,
                 clock.now(), false));
     }
 
+    /**
+     * 中文：复制车位记录并替换状态、车牌和启用标记。
+     */
     private ParkingSpace withSpaceState(ParkingSpace space, ParkingSpaceStatus status,
                                         String plate, boolean enabled) {
         return new ParkingSpace(space.id(), space.zoneId(), space.label(), space.category(),

@@ -6,6 +6,8 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.util.HashMap;
 import java.util.List;
@@ -30,22 +32,39 @@ import mia.parking.core.domain.DashboardSnapshot;
 import mia.parking.core.domain.Incident;
 import mia.parking.core.domain.ZoneSnapshot;
 
-/** Main navigation shell and lightweight, non-functional dashboard preview. */
+/** Main navigation shell and lightweight, non-functional dashboard preview.
+ * 中文：构建控制中心 Swing 导航、仪表盘和模块占位页面。
+ */
 public final class ControlCenterView extends JPanel {
 
+    /**
+     * 中文：保存控制中心页面的导航标识和本地化文案键。
+     */
     private record Module(String id, String titleKey, String descriptionKey) { }
 
-    private static final List<Module> MODULES = List.of(
-            new Module("dashboard", "nav.dashboard", "nav.dashboard.description"),
-            new Module("spaces", "nav.spaces", "nav.spaces.description"),
-            new Module("vehicles", "nav.vehicles", "nav.vehicles.description"),
-            new Module("security", "nav.security", "nav.security.description"),
-            new Module("fees", "nav.fees", "nav.fees.description"),
-            new Module("devices", "nav.devices", "nav.devices.description"),
-            new Module("users", "nav.users", "nav.users.description"),
-            new Module("logs", "nav.logs", "nav.logs.description"),
-            new Module("simulation", "nav.simulation", "nav.simulation.description"),
-            new Module("backup", "nav.backup", "nav.backup.description"));
+    /**
+     * 中文：将负责成员标签与其连续导航模块组合在一起。
+     */
+    private record ModuleGroup(List<Module> modules) { }
+
+    private static final List<ModuleGroup> MODULE_GROUPS = List.of(
+            new ModuleGroup(List.of(
+                    new Module("dashboard", "nav.dashboard", "nav.dashboard.description"),
+                    new Module("spaces", "nav.spaces", "nav.spaces.description"),
+                    new Module("devices", "nav.devices", "nav.devices.description"),
+                    new Module("simulation", "nav.simulation", "nav.simulation.description"))),
+            new ModuleGroup(List.of(
+                    new Module("vehicles", "nav.vehicles", "nav.vehicles.description"),
+                    new Module("security", "nav.security", "nav.security.description"),
+                    new Module("backup", "nav.backup", "nav.backup.description"))),
+            new ModuleGroup(List.of(
+                    new Module("fees", "nav.fees", "nav.fees.description"),
+                    new Module("users", "nav.users", "nav.users.description"),
+                    new Module("logs", "nav.logs", "nav.logs.description"))));
+
+    private static final List<Module> MODULES = MODULE_GROUPS.stream()
+            .flatMap(group -> group.modules().stream())
+            .toList();
 
     private final CardLayout pageLayout = new CardLayout();
     private final JPanel pages = new CardHost(pageLayout);
@@ -56,6 +75,9 @@ public final class ControlCenterView extends JPanel {
     private String selectedModuleId = "dashboard";
     private UiLanguage language = UiLanguage.CHINESE;
 
+    /**
+     * 中文：初始化仪表盘、导航、语言控件和刷新计时器。
+     */
     public ControlCenterView(ParkingControlService service) {
         this.service = service;
         snapshot = service.getDashboardSnapshot();
@@ -65,6 +87,9 @@ public final class ControlCenterView extends JPanel {
         new Timer(1000, event -> refreshDashboard()).start();
     }
 
+    /**
+     * 中文：按当前语言重新构建控制中心界面。
+     */
     private void rebuildInterface() {
         removeAll();
         navigationButtons.clear();
@@ -90,6 +115,9 @@ public final class ControlCenterView extends JPanel {
         repaint();
     }
 
+    /**
+     * 中文：组合页面主体、顶部区域、导航栏和页脚。
+     */
     private JPanel buildTop() {
         JPanel top = new JPanel(new BorderLayout());
         top.setBackground(UiTheme.SURFACE);
@@ -98,6 +126,9 @@ public final class ControlCenterView extends JPanel {
         return top;
     }
 
+    /**
+     * 中文：构建品牌标识、语言切换和页面标题区域。
+     */
     private JPanel buildHeader() {
         JPanel header = new JPanel(new BorderLayout(14, 0));
         header.setBackground(UiTheme.SURFACE);
@@ -141,6 +172,9 @@ public final class ControlCenterView extends JPanel {
         return header;
     }
 
+    /**
+     * 中文：创建一个语言选项按钮并加入按钮组。
+     */
     private JToggleButton languageToggle(UiLanguage choice, String caption, ButtonGroup group) {
         JToggleButton button = new JToggleButton(caption, language == choice);
         button.setFont(UiTheme.SMALL_BOLD);
@@ -160,22 +194,47 @@ public final class ControlCenterView extends JPanel {
         return button;
     }
 
+    /**
+     * 中文：构建可横向滚动的模块导航栏。
+     */
     private JScrollPane buildNavigation() {
-        JPanel row = new JPanel(new GridLayout(1, MODULES.size(), 2, 0));
+        JPanel row = new JPanel(new GridBagLayout());
         row.setBackground(UiTheme.SURFACE);
         row.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 24));
         row.setPreferredSize(new Dimension(1160, 52));
 
-        for (Module module : MODULES) {
-            JButton button = new JButton(text(module.titleKey()));
-            button.setFont(UiTheme.SMALL_BOLD);
-            button.setFocusPainted(false);
-            button.setContentAreaFilled(true);
-            button.setOpaque(true);
-            button.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 0, UiTheme.SURFACE));
-            button.addActionListener(event -> showModule(module.id()));
-            navigationButtons.put(module.id(), button);
-            row.add(button);
+        for (int index = 0; index < MODULE_GROUPS.size(); index++) {
+            ModuleGroup group = MODULE_GROUPS.get(index);
+            JPanel groupPanel = new JPanel(new BorderLayout());
+            groupPanel.setBackground(UiTheme.SURFACE);
+            if (index > 0) {
+                groupPanel.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 1, 0, 0, UiTheme.LINE),
+                        BorderFactory.createEmptyBorder(0, 12, 0, 0)));
+            }
+
+            JPanel buttons = new JPanel(new GridLayout(1, group.modules().size(), 2, 0));
+            buttons.setBackground(UiTheme.SURFACE);
+            for (Module module : group.modules()) {
+                JButton button = new JButton(text(module.titleKey()));
+                button.setFont(UiTheme.SMALL_BOLD);
+                button.setFocusPainted(false);
+                button.setContentAreaFilled(true);
+                button.setOpaque(true);
+                button.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 0, UiTheme.SURFACE));
+                button.addActionListener(event -> showModule(module.id()));
+                navigationButtons.put(module.id(), button);
+                buttons.add(button);
+            }
+            groupPanel.add(buttons, BorderLayout.CENTER);
+
+            GridBagConstraints constraints = new GridBagConstraints();
+            constraints.gridx = index;
+            constraints.gridy = 0;
+            constraints.weightx = (double) group.modules().size() / MODULES.size();
+            constraints.weighty = 1;
+            constraints.fill = GridBagConstraints.BOTH;
+            row.add(groupPanel, constraints);
         }
 
         JScrollPane navigation = new JScrollPane(row,
@@ -187,6 +246,9 @@ public final class ControlCenterView extends JPanel {
         return navigation;
     }
 
+    /**
+     * 中文：构建控制中心底部说明区域。
+     */
     private JPanel buildFooter() {
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 9));
         footer.setBackground(UiTheme.SURFACE);
@@ -199,12 +261,18 @@ public final class ControlCenterView extends JPanel {
         return footer;
     }
 
+    /**
+     * 中文：切换当前页面并更新导航按钮样式。
+     */
     private void showModule(String moduleId) {
         selectedModuleId = moduleId;
         pageLayout.show(pages, moduleId);
         navigationButtons.forEach((id, button) -> styleNavigationButton(button, id.equals(moduleId)));
     }
 
+    /**
+     * 中文：刷新业务快照并重建仪表盘页面。
+     */
     private void refreshDashboard() {
         snapshot = service.getDashboardSnapshot();
         pages.remove(dashboardPanel);
@@ -215,6 +283,9 @@ public final class ControlCenterView extends JPanel {
         pages.repaint();
     }
 
+    /**
+     * 中文：根据按钮选中状态应用对应颜色和边框。
+     */
     private void styleNavigationButton(JButton button, boolean selected) {
         button.setBackground(selected ? new Color(246, 249, 255) : UiTheme.SURFACE);
         button.setForeground(selected ? UiTheme.BLUE : UiTheme.MUTED);
@@ -222,6 +293,9 @@ public final class ControlCenterView extends JPanel {
                 0, 0, 3, 0, selected ? UiTheme.BLUE : UiTheme.SURFACE));
     }
 
+    /**
+     * 中文：组合页面标题、指标卡片和运营面板。
+     */
     private JPanel buildDashboard(Module module) {
         JPanel page = pageContainer();
         page.setLayout(new BoxLayout(page, BoxLayout.Y_AXIS));
@@ -233,6 +307,9 @@ public final class ControlCenterView extends JPanel {
         return page;
     }
 
+    /**
+     * 中文：创建控制中心页面的共用容器。
+     */
     private JPanel pageContainer() {
         JPanel page = new JPanel();
         page.setOpaque(true);
@@ -241,6 +318,9 @@ public final class ControlCenterView extends JPanel {
         return page;
     }
 
+    /**
+     * 中文：构建模块标题及说明区域。
+     */
     private JPanel buildPageHeading(Module module) {
         JPanel heading = new JPanel();
         heading.setOpaque(false);
@@ -253,6 +333,9 @@ public final class ControlCenterView extends JPanel {
         return heading;
     }
 
+    /**
+     * 中文：构建占用、空闲、会话和告警摘要卡片。
+     */
     private JPanel buildMetrics() {
         JPanel metrics = new JPanel(new GridLayout(1, 4, 14, 0));
         metrics.setOpaque(false);
@@ -271,6 +354,9 @@ public final class ControlCenterView extends JPanel {
         return metrics;
     }
 
+    /**
+     * 中文：构建展示标题、数值和说明的指标卡片。
+     */
     private JPanel metric(String title, String value, String note, Color accent) {
         JPanel card = new JPanel();
         card.setBackground(UiTheme.SURFACE);
@@ -288,6 +374,9 @@ public final class ControlCenterView extends JPanel {
         return card;
     }
 
+    /**
+     * 中文：组合分区概览面板和事件面板。
+     */
     private JPanel buildOperationsPanels() {
         JPanel panels = new JPanel(new GridLayout(1, 2, 16, 0));
         panels.setOpaque(false);
@@ -296,6 +385,9 @@ public final class ControlCenterView extends JPanel {
         return panels;
     }
 
+    /**
+     * 中文：构建分区占用情况及状态图例。
+     */
     private JPanel buildZonePanel() {
         JPanel panel = panelColumn();
         panel.add(panelHeading(text("panel.zones"), text("panel.zones.subtitle")));
@@ -322,6 +414,9 @@ public final class ControlCenterView extends JPanel {
         return panel;
     }
 
+    /**
+     * 中文：构建显示分区信息和占用进度的行组件。
+     */
     private JPanel zoneRow(String name, String detail, int occupancy, Color color) {
         JPanel row = new JPanel();
         row.setOpaque(false);
@@ -353,6 +448,9 @@ public final class ControlCenterView extends JPanel {
         return row;
     }
 
+    /**
+     * 中文：构建状态图例中的颜色标识项。
+     */
     private JPanel legendItem(Color color, String text) {
         JPanel item = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         item.setOpaque(false);
@@ -362,6 +460,9 @@ public final class ControlCenterView extends JPanel {
         return item;
     }
 
+    /**
+     * 中文：构建近期事件列表或无事件时的示例内容。
+     */
     private JPanel buildEventsPanel() {
         JPanel panel = panelColumn();
         panel.add(panelHeading(text("panel.events"), text("panel.events.subtitle")));
@@ -383,6 +484,9 @@ public final class ControlCenterView extends JPanel {
         return panel;
     }
 
+    /**
+     * 中文：构建包含时间、标题和详情的事件行。
+     */
     private JPanel eventRow(String time, String title, String detail, Color color) {
         JPanel row = new JPanel(new BorderLayout(10, 0));
         row.setOpaque(false);
@@ -400,6 +504,9 @@ public final class ControlCenterView extends JPanel {
         return row;
     }
 
+    /**
+     * 中文：创建采用共用样式的纵向面板。
+     */
     private JPanel panelColumn() {
         JPanel panel = new JPanel();
         panel.setBackground(UiTheme.SURFACE);
@@ -410,6 +517,9 @@ public final class ControlCenterView extends JPanel {
         return panel;
     }
 
+    /**
+     * 中文：构建面板标题和副标题。
+     */
     private JPanel panelHeading(String title, String subtitle) {
         JPanel heading = new JPanel();
         heading.setOpaque(false);
@@ -420,6 +530,9 @@ public final class ControlCenterView extends JPanel {
         return heading;
     }
 
+    /**
+     * 中文：构建尚未接入业务功能的占位页面。
+     */
     private JPanel buildPlaceholder(Module module) {
         JPanel page = pageContainer();
         page.setLayout(new BoxLayout(page, BoxLayout.Y_AXIS));
@@ -438,6 +551,9 @@ public final class ControlCenterView extends JPanel {
         return page;
     }
 
+    /**
+     * 中文：按指定大小、颜色和粗细创建文本标签。
+     */
     private JLabel label(String text, int size, Color color, boolean bold) {
         JLabel label = new JLabel(text);
         label.setFont(new java.awt.Font(UiTheme.FONT_FAMILY, bold ? java.awt.Font.BOLD : java.awt.Font.PLAIN, size));
@@ -445,37 +561,61 @@ public final class ControlCenterView extends JPanel {
         return label;
     }
 
+    /**
+     * 中文：按当前语言读取本地化界面文案。
+     */
     private String text(String key) {
         return UiText.text(language, key);
     }
 
+    /**
+     * 中文：为控制中心卡片页面提供滚动容器行为。
+     */
     private static final class CardHost extends JPanel implements Scrollable {
 
+        /**
+         * 中文：创建采用统一背景样式的可滚动卡片容器。
+         */
         private CardHost(CardLayout layout) {
             super(layout);
             setBackground(UiTheme.BACKGROUND);
         }
 
+        /**
+         * 中文：返回滚动容器首选可视区域尺寸。
+         */
         @Override
         public Dimension getPreferredScrollableViewportSize() {
             return new Dimension(1100, 620);
         }
 
+        /**
+         * 中文：返回单步滚动距离。
+         */
         @Override
         public int getScrollableUnitIncrement(java.awt.Rectangle visibleRect, int orientation, int direction) {
             return 24;
         }
 
+        /**
+         * 中文：返回整页滚动距离。
+         */
         @Override
         public int getScrollableBlockIncrement(java.awt.Rectangle visibleRect, int orientation, int direction) {
             return Math.max(visibleRect.height - 24, 24);
         }
 
+        /**
+         * 中文：使卡片内容宽度跟随视口。
+         */
         @Override
         public boolean getScrollableTracksViewportWidth() {
             return true;
         }
 
+        /**
+         * 中文：使卡片内容高度保持首选尺寸。
+         */
         @Override
         public boolean getScrollableTracksViewportHeight() {
             return false;

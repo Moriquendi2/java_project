@@ -14,12 +14,20 @@ import mia.parking.core.port.DeviceSpaceStatus;
 import mia.parking.core.domain.ParkingSpace;
 import mia.parking.ui.ControlCenterView;
 
-/** Starts the native Swing parking control client. */
+/** Starts the native Swing parking control client.
+ * 中文：启动 Swing 停车控制台并装配业务服务、数据仓库和模拟设备。
+ */
 public final class ParkingApplication {
 
+    /**
+     * 中文：阻止创建应用入口工具类的实例。
+     */
     private ParkingApplication() {
     }
 
+    /**
+     * 中文：创建应用服务和模拟适配器，并显示主窗口。
+     */
     public static void main(String[] args) {
         InMemoryParkingRepository repository = new InMemoryParkingRepository();
         SimulatedDeviceGateway devices = new SimulatedDeviceGateway();

@@ -5,7 +5,9 @@ import java.util.Optional;
 import mia.parking.core.domain.ParkingStateSnapshot;
 import mia.parking.core.port.SnapshotStore;
 
-/** Development snapshot adapter; replace with a file-backed store for delivery. */
+/** Development snapshot adapter; replace with a file-backed store for delivery.
+ * 中文：在内存中保存和读取停车状态恢复快照。
+ */
 public final class InMemorySnapshotStore implements SnapshotStore {
     private ParkingStateSnapshot snapshot;
 
@@ -14,6 +16,9 @@ public final class InMemorySnapshotStore implements SnapshotStore {
         return Optional.ofNullable(snapshot);
     }
 
+    /**
+     * 中文：保存传入的停车状态快照。
+     */
     @Override
     public synchronized void save(ParkingStateSnapshot snapshot) {
         this.snapshot = snapshot;

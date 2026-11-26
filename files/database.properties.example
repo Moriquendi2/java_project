@@ -1,0 +1,6 @@
+# Team 7: Hao Yang, Zexuan Li, Haolin Chen.
+# Local connection settings for the standalone PARKING_ZONE JDBC demo.
+# Copy this file to database.properties and replace the example credentials.
+jdbc.url=jdbc:mysql://localhost:3306/mia_parking?serverTimezone=UTC
+jdbc.username=root
+jdbc.password=change_me

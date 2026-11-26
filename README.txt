@@ -38,6 +38,24 @@ directory. The run script launches the Swing application using the in-memory
 repository, snapshot store, and simulated device adapter. MySQL is not needed
 for this development mode.
 
+Run the MySQL connection demo
+-----------------------------
+1. Start MySQL Server 8.0 or newer and import db.sql. From a MySQL command-line
+   client, run `source db.sql`, or open db.sql in MySQL Workbench and execute it.
+2. Copy the example settings and enter your local account details:
+
+   Copy-Item .\files\database.properties.example .\files\database.properties
+
+3. From the project root, compile and run the standalone database demo:
+
+   .\build.ps1
+   java -cp ".\out;.\lib\mysql-connector-j-9.7.0.jar" mia.parking.infrastructure.persistence.DatabaseDemo
+
+The demo lists rows from PARKING_ZONE. It reads connection settings from
+files/database.properties. That local file is ignored by Git; do not put real
+credentials in the tracked example file. The main Swing app continues to use its
+in-memory development repository.
+
 Project layout
 --------------
 - src/mia/parking/app: Swing application entry point.
@@ -45,7 +63,7 @@ Project layout
 - src/mia/parking/core: parking-control service contract and temporary demo implementation.
 - src/mia/parking/core/domain: shared records and enums used across modules.
 - src/mia/parking/core/port: device, repository, snapshot, and time contracts.
-- src/mia/parking/infrastructure: in-memory development adapters and future JDBC/recovery/time adapters.
+- src/mia/parking/infrastructure: in-memory adapters, a standalone JDBC zone demo, and recovery/time adapters.
 - src/mia/parking/simulation: simulated device and future scenario adapters.
 - build.ps1 / run.ps1: compile and launch the development application.
 - files: reserved for runtime configuration, data, and resources as needed.
@@ -54,10 +72,11 @@ Project layout
 
 Database and delivery status
 ----------------------------
-The JDBC port is defined, but the MySQL adapter, schema, and credentials are not
-included in this development baseline. MySQL Connector/J 9.7.0 is included for
-the persistence owner. The final db.sql and runnable project.jar remain delivery
-items. See docs/AGENTS.md for the shared contract and module ownership rules.
+The one-table MySQL connection demo is separate from the application's in-memory
+repository. It demonstrates the JDBC driver, local connection settings, and basic
+zone queries; it is not the final parking database. The final db.sql must still
+cover the complete model and demo data required by docs/AGENTS.md. The final
+project.jar is also a later delivery item.
 
 Team source-file headers
 ------------------------

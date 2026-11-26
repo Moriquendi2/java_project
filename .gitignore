@@ -4,3 +4,4 @@ out/
 target/
 *.class
 *.iml.bak
+/files/database.properties

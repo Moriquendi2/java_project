@@ -72,11 +72,23 @@ Project layout
 
 Database and delivery status
 ----------------------------
-The one-table MySQL connection demo is separate from the application's in-memory
-repository. It demonstrates the JDBC driver, local connection settings, and basic
-zone queries; it is not the final parking database. The final db.sql must still
-cover the complete model and demo data required by docs/AGENTS.md. The final
-project.jar is also a later delivery item.
+db.sql creates the parking schema and seeds a small layout, gates, terminal
+and gate distances, flights, and memberships. It upgrades the original
+zone-only schema in place. Reimporting it preserves existing rows and settings.
+The flight examples use 2026-11-26 UTC. Business timestamps use DATETIME(6)
+with UTC values supplied by the application.
+
+PARKING_SESSION stores the assigned space and barrier timestamps. SPACE_STAY
+stores sensor-confirmed intervals and actual spaces for billing and occupancy.
+When leaving a space, write the stay's end and release its assignment in the
+same transaction if the assignment is still held. Allocators must check both
+active assignments and open stays before reserving an enabled space. Application
+transactions also validate the declared destination (terminal, airline, or a
+linked flight) and write it together with the session.
+
+DatabaseDemo reads the zone table with JDBC. The Swing prototype uses the
+in-memory repository. JDBC business integration and project.jar are later
+delivery items.
 
 Team source-file headers
 ------------------------
